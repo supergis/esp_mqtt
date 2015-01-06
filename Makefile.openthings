@@ -1,0 +1,5 @@
+SDK_HOME = /home/supermap/OpenThings/esp-open-sdk
+XTENSA_TOOLS_ROOT = $(SDK_HOME)/xtensa-lx106-elf/bin
+SDK_BASE	= $(SDK_HOME)/esp_iot_sdk_v0.9.5
+
+include Makefile.linux

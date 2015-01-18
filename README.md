@@ -1,12 +1,12 @@
 **esp_mqtt**
 ==========
-This is MQTT client library for ESP8266, port from: [MQTT client library for Contiki](https://github.com/esar/contiki-mqtt) 
+This is MQTT client library for ESP8266, port from: [MQTT client library for Contiki](https://github.com/esar/contiki-mqtt) (thanks)
 
 **Features:**
 
  * Support subscribing, publishing, authentication, will messages, keep alive pings and all 3 QoS levels (it should be a fully functional client).
  * Support multiple connection (to multiple hosts).
- * **Support SSL connection (max 1024 bit key size)**
+ * Support SSL connection (max 1024 bit key size)
  * Easy to setup and use
 
 
@@ -22,6 +22,7 @@ This is MQTT client library for ESP8266, port from: [MQTT client library for Con
 #include "debug.h"
 #include "gpio.h"
 #include "user_interface.h"
+#include "mem.h"
 
 MQTT_Client mqttClient;
 
@@ -29,17 +30,20 @@ void wifiConnectCb(uint8_t status)
 {
 	if(status == STATION_GOT_IP){
 		MQTT_Connect(&mqttClient);
-
-		MQTT_Subscribe(&mqttClient, "/test/topic");
-		MQTT_Subscribe(&mqttClient, "/test2/topic");
-
-
 	}
 }
 void mqttConnectedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Connected\r\n");
+	MQTT_Subscribe(client, "/mqtt/topic/0", 0);
+	MQTT_Subscribe(client, "/mqtt/topic/1", 1);
+	MQTT_Subscribe(client, "/mqtt/topic/2", 2);
+
+	MQTT_Publish(client, "/mqtt/topic/0", "hello0", 6, 0, 0);
+	MQTT_Publish(client, "/mqtt/topic/1", "hello1", 6, 1, 0);
+	MQTT_Publish(client, "/mqtt/topic/2", "hello2", 6, 2, 0);
+
 }
 
 void mqttDisconnectedCb(uint32_t *args)
@@ -54,10 +58,11 @@ void mqttPublishedCb(uint32_t *args)
 	INFO("MQTT: Published\r\n");
 }
 
-
 void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
 {
-	char topicBuf[64], dataBuf[64];
+	char *topicBuf = (char*)os_zalloc(topic_len+1),
+			*dataBuf = (char*)os_zalloc(data_len+1);
+
 	MQTT_Client* client = (MQTT_Client*)args;
 
 	os_memcpy(topicBuf, topic, topic_len);
@@ -66,16 +71,9 @@ void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const cha
 	os_memcpy(dataBuf, data, data_len);
 	dataBuf[data_len] = 0;
 
-	INFO("MQTT topic: %s, data: %s \r\n", topicBuf, dataBuf);
-
-	/* Echo back to /echo channel*/
-	MQTT_Publish(client, "/echo", dataBuf, data_len, 0, 0);
-}
-
-void mqttPublishedCb(uint32_t *args)
-{
-	MQTT_Client* client = (MQTT_Client*)args;
-	INFO("MQTT: Published\r\n");
+	INFO("Receive topic: %s, data: %s \r\n", topicBuf, dataBuf);
+	os_free(topicBuf);
+	os_free(dataBuf);
 }
 
 
@@ -87,27 +85,41 @@ void user_init(void)
 	CFG_Load();
 
 	MQTT_InitConnection(&mqttClient, sysCfg.mqtt_host, sysCfg.mqtt_port, sysCfg.security);
-	MQTT_InitClient(&mqttClient, sysCfg.device_id, sysCfg.mqtt_user, sysCfg.mqtt_pass, sysCfg.mqtt_keepalive);
+	//MQTT_InitConnection(&mqttClient, "192.168.11.122", 1880, 0);
+
+	MQTT_InitClient(&mqttClient, sysCfg.device_id, sysCfg.mqtt_user, sysCfg.mqtt_pass, sysCfg.mqtt_keepalive, 1);
+	//MQTT_InitClient(&mqttClient, "client_id", "user", "pass", 120, 1);
+
+	MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
 	MQTT_OnConnected(&mqttClient, mqttConnectedCb);
-	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
 	MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
+	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
 	MQTT_OnData(&mqttClient, mqttDataCb);
 
 	WIFI_Connect(sysCfg.sta_ssid, sysCfg.sta_pwd, wifiConnectCb);
 
 	INFO("\r\nSystem started ...\r\n");
 }
+
 ```
 
-**Publish message**
+**Publish message and Subscribe**
 
 ```c
-void MQTT_Publish(	MQTT_Client *client, 
-					const char* topic, 
-					const char* data, 
-					int data_length, 
-					int qos, 
-					int retain);
+/* TRUE if success */
+BOOL MQTT_Subscribe(MQTT_Client *client, char* topic, uint8_t qos);
+
+BOOL MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int data_length, int qos, int retain);
+
+```
+
+**Already support LWT: (Last Will and Testament)***
+
+```c
+
+/* Broker will publish a message with qos = 0, retain = 0, data = "offline" to topic "/lwt" if client don't send keepalive packet */
+MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
+
 ```
 
 **Default configuration**
@@ -142,7 +154,7 @@ var ascoltatore = {
 };
 
 var moscaSettings = {
-  port: 8440,
+  port: 1880,
   stats: false,
   backend: ascoltatore,
   persistence: {
@@ -152,7 +164,7 @@ var moscaSettings = {
   secure : {
     keyPath: SECURE_KEY,
     certPath: SECURE_CERT,
-    port: 8443
+    port: 1883
   }
 };
 
@@ -176,7 +188,9 @@ function setup() {
 
 **Be careful:** This library is not fully supported  for too long messages.
 
-**Status:** *Alpha release.*
+**Status:** *Pre release.*
+
+[https://github.com/tuanpmt/esp_mqtt/releases](https://github.com/tuanpmt/esp_mqtt/releases)
 
 [MQTT Broker for test](https://github.com/mcollina/mosca)
 

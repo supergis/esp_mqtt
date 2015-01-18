@@ -1,4 +1,4 @@
-/* str_queue.h --
+/* str_queue.c
 *
 * Copyright (c) 2014-2015, Tuan PM <tuanpm at live dot com>
 * All rights reserved.
@@ -27,20 +27,31 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
+#include "queue.h"
 
-#ifndef USER_STR_QUEUE_H_
-#define USER_STR_QUEUE_H_
+#include "user_interface.h"
+#include "osapi.h"
 #include "os_type.h"
-typedef struct {
-	uint8_t *buf;
-	uint32_t pr;
-	uint32_t pw;
-	uint32_t size;
-	uint32_t strLen;
-} STR_QUEUE;
+#include "mem.h"
+#include "proto.h"
+void QUEUE_Init(QUEUE *queue, int bufferSize)
+{
+	queue->buf = (uint8_t*)os_zalloc(bufferSize);
+	RINGBUF_Init(&queue->rb, queue->buf, bufferSize);
+}
+int32_t QUEUE_Puts(QUEUE *queue, uint8_t* buffer, uint16_t len)
+{
+	return PROTO_AddRb(&queue->rb, buffer, len);
+}
+int32_t QUEUE_Gets(QUEUE *queue, uint8_t* buffer, uint16_t* len, uint16_t maxLen)
+{
 
-void QUEUE_Init(STR_QUEUE *queue, int strLen, int strSize);
-int32_t QUEUE_Puts(STR_QUEUE *queue, char* str);
-int32_t QUEUE_Gets(STR_QUEUE *queue, char* str);
-int32_t QUEUE_IsEmpty(STR_QUEUE *queue);
-#endif /* USER_STR_QUEUE_H_ */
+	return PROTO_ParseRb(&queue->rb, buffer, len, maxLen);
+}
+
+BOOL QUEUE_IsEmpty(QUEUE *queue)
+{
+	if(queue->rb.fill_cnt<=0)
+		return TRUE;
+	return FALSE;
+}

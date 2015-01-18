@@ -31,7 +31,8 @@
 #define USER_AT_MQTT_H_
 #include "mqtt_msg.h"
 #include "user_interface.h"
-#include "str_queue.h"
+
+#include "queue.h"
 typedef struct mqtt_event_data_t
 {
   uint8_t type;
@@ -57,6 +58,7 @@ typedef struct mqtt_state_t
   mqtt_connection_t mqtt_connection;
   uint16_t pending_msg_id;
   int pending_msg_type;
+  int pending_publish_qos;
 } mqtt_state_t;
 
 typedef enum {
@@ -98,8 +100,9 @@ typedef struct  {
 	ETSTimer mqttTimer;
 	uint32_t keepAliveTick;
 	uint32_t reconnectTick;
+	uint32_t sendTimeout;
 	tConnState connState;
-	STR_QUEUE topicQueue;
+	QUEUE msgQueue;
 } MQTT_Client;
 
 #define SEC_NONSSL 0
@@ -120,13 +123,14 @@ typedef struct  {
 #define MQTT_EVENT_TYPE_PUBLISH_CONTINUATION 8
 
 void MQTT_InitConnection(MQTT_Client *mqttClient, uint8_t* host, uint32 port, uint8_t security);
-void MQTT_InitClient(MQTT_Client *mqttClient, uint8_t* client_id, uint8_t* client_user, uint8_t* client_pass, uint32_t keepAliveTime);
+void MQTT_InitClient(MQTT_Client *mqttClient, uint8_t* client_id, uint8_t* client_user, uint8_t* client_pass, uint32_t keepAliveTime, uint8_t cleanSession);
+void MQTT_InitLWT(MQTT_Client *mqttClient, uint8_t* will_topic, uint8_t* will_msg, uint8_t will_qos, uint8_t will_retain);
 void MQTT_OnConnected(MQTT_Client *mqttClient, MqttCallback connectedCb);
 void MQTT_OnDisconnected(MQTT_Client *mqttClient, MqttCallback disconnectedCb);
 void MQTT_OnPublished(MQTT_Client *mqttClient, MqttCallback publishedCb);
 void MQTT_OnData(MQTT_Client *mqttClient, MqttDataCallback dataCb);
-void MQTT_Subscribe(MQTT_Client *client, char* topic);
+BOOL MQTT_Subscribe(MQTT_Client *client, char* topic, uint8_t qos);
 void MQTT_Connect(MQTT_Client *mqttClient);
-void MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int data_length, int qos, int retain);
+BOOL MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int data_length, int qos, int retain);
 
 #endif /* USER_AT_MQTT_H_ */

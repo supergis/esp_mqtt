@@ -42,7 +42,8 @@
 SYSCFG sysCfg;
 SAVE_FLAG saveFlag;
 
-void CFG_Save()
+void ICACHE_FLASH_ATTR
+CFG_Save()
 {
 	 spi_flash_read((CFG_LOCATION + 3) * SPI_FLASH_SEC_SIZE,
 	                   (uint32 *)&saveFlag, sizeof(SAVE_FLAG));
@@ -66,7 +67,8 @@ void CFG_Save()
 	}
 }
 
-void CFG_Load()
+void ICACHE_FLASH_ATTR
+CFG_Load()
 {
 
 	INFO("\r\nload ...\r\n");
@@ -99,7 +101,7 @@ void CFG_Load()
 
 		sysCfg.mqtt_keepalive = MQTT_KEEPALIVE;
 
-		INFO(" default configurations\r\n");
+		INFO(" default configuration\r\n");
 
 		CFG_Save();
 	}

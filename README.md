@@ -2,6 +2,8 @@
 ==========
 This is MQTT client library for ESP8266, port from: [MQTT client library for Contiki](https://github.com/esar/contiki-mqtt) (thanks)
 
+
+
 **Features:**
 
  * Support subscribing, publishing, authentication, will messages, keep alive pings and all 3 QoS levels (it should be a fully functional client).
@@ -9,7 +11,35 @@ This is MQTT client library for ESP8266, port from: [MQTT client library for Con
  * Support SSL connection (max 1024 bit key size)
  * Easy to setup and use
 
+**Compile:**
 
+Make sure to add PYTHON PATH and compile PATH to Eclipse environment variable if using Eclipse
+
+for Windows:
+
+```bash
+git clone https://github.com/tuanpmt/esp_mqtt
+cd esp_mqtt
+#clean
+mingw32-make clean
+#make
+mingw32-make SDK_BASE="c:/Espressif/ESP8266_SDK" FLAVOR="release" all
+#flash
+mingw32-make ESPPORT="COM1" flash
+```
+
+for Mac or Linux:
+
+```bash
+git clone https://github.com/tuanpmt/esp_mqtt
+cd esp_mqtt
+#clean
+make clean
+#make
+make SDK_BASE="/opt/Espressif/ESP8266_SDK" FLAVOR="release" all
+#flash
+make ESPPORT="/dev/ttyUSB0" flash
+```
 
 **Usage**
 ```c
@@ -115,7 +145,7 @@ BOOL MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int 
 
 ```
 
-**Already support LWT: (Last Will and Testament)***
+**Already support LWT: (Last Will and Testament)**
 
 ```c
 
@@ -124,18 +154,26 @@ MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
 
 ```
 
-**Default configuration**
+#Default configuration
 
-See: *include/user_config.h* and *include/config.c*
+See: **include/user_config.h**
 
-If you want to load new default configurations, just change the value of CFG_HOLDER in ***include/user_config.h***
+If you want to load new default configurations, just change the value of CFG_HOLDER in **include/user_config.h**
 
-Now in the Makefile, it will erase section hold the user configuration at 0x3C000
+**Define protocol name in include/user_config.h**
+
+```c
+#define PROTOCOL_NAMEv31	/*MQTT version 3.1 compatible with Mosquitto v0.15*/
+//PROTOCOL_NAMEv311			/*MQTT version 3.11 compatible with https://eclipse.org/paho/clients/testing/*/
+```
+
+In the Makefile, it will erase section hold the user configuration at 0x3C000
 
 ```bash
 flash: firmware/0x00000.bin firmware/0x40000.bin
 	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3C000 $(BLANKER) 0x40000 firmware/0x40000.bin 
 ```
+The BLANKER is the blank.bin file you find in your SDKs bin folder.
 
 **Create SSL Self sign**
 
@@ -210,7 +248,7 @@ function setup() {
 
 **Requried:**
 
-esp_iot_sdk_v0.9.4_14_12_19
+SDK esp_iot_sdk_v0.9.4_14_12_19 or higher
 
 **Authors:**
 [Tuan PM](https://twitter.com/TuanPMT)

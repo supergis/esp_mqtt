@@ -37,7 +37,6 @@
 #include "mqtt_msg.h"
 #include "debug.h"
 #include "user_config.h"
-#include "config.h"
 #include "mqtt.h"
 #include "queue.h"
 
@@ -46,7 +45,7 @@
 #define MQTT_SEND_TIMOUT			5
 
 #ifndef QUEUE_BUFFER_SIZE
-#define QUEUE_BUFFER_SIZE		 		2048
+#define QUEUE_BUFFER_SIZE		 	2048
 #endif
 
 unsigned char *default_certificate;

@@ -1,6 +1,14 @@
 **esp_mqtt**
 ==========
+<<<<<<< HEAD
 This is MQTT client library for ESP8266, port from: [MQTT client library for Contiki](https://github.com/esar/contiki-mqtt) 
+=======
+![](https://travis-ci.org/tuanpmt/esp_mqtt.svg?branch=master)
+
+This is MQTT client library for ESP8266, port from: [MQTT client library for Contiki](https://github.com/esar/contiki-mqtt) (thanks)
+
+
+>>>>>>> upstream/master
 
 **Features:**
 

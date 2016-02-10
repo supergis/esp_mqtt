@@ -7,8 +7,5 @@
 
 void DHTInit();
 float * DHTRead(void);
-
-//void ICACHE_FLASH_ATTR xc_cmd_CDHT22(uint8_t id, char *pParam);
-//void ICACHE_FLASH_ATTR readDHT22( char  *pParam);
 void readDHT22( char  *pstrID,  char  *pParam);
 #endif

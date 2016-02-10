@@ -39,14 +39,13 @@
 
 #include "smartconfig.h"
 
-//#include "../dht22/dht22.h"
 #include "dht22.h"
-
 #include "hall.h"
+#include "pm.h"
 
 MQTT_Client mqttClient;
 char  g_pDataBuf[64];
-char g_pstrID[10];// = "20201";
+char g_pstrID[10];
  
  static ETSTimer SmSensor;
  static ETSTimer SmSmartconfig;
@@ -58,17 +57,20 @@ static void  PublishData(void *arg)
 	if( pClient !=0 )
 	{
 		int8	datalen= 0;
-		//readDHT22( g_pstrID, g_pDataBuf ); //"20208"
-		//readHALL( g_pstrID, g_pDataBuf ); //"20208"
-		readPM( g_pstrID, g_pDataBuf ); 
+
+ 		if( SM_SENSOR_TYPE == 1 ){ // DHT22
+ 			readDHT22( g_pstrID, g_pDataBuf ); 
+ 		}
+ 		else if( SM_SENSOR_TYPE == 2 ){ // HALL
+ 			readHALL( g_pstrID, g_pDataBuf ); 
+ 		}
+ 		 else if( SM_SENSOR_TYPE == 3 ){ // PM2.5
+ 			readPM( g_pstrID, g_pDataBuf ); 
+ 		} 		
+
 		datalen = strlen( g_pDataBuf );
 
 		INFO("MQTT data: %s \r\n", g_pDataBuf );
-
-//-----------------
-		INFO("ssid: %s \r\n", sysCfg.sta_ssid );
-		INFO("pw: %s \r\n", sysCfg.sta_pwd );
-//-----------------	
 
 		MQTT_Publish( pClient, "/sm/sensors", g_pDataBuf, datalen, 0, 0);
 	}
@@ -84,7 +86,7 @@ void mqttConnectedCb(uint32_t *args)
 {
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Connected\r\n");
-	//MQTT_Subscribe(&mqttClient, "/sm/sensors");
+
 	MQTT_Subscribe(&mqttClient, "/sm/cmd");
 }
 
@@ -105,41 +107,14 @@ void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const cha
 	//char  dataBuf[64]; //topicBuf[64],
 	MQTT_Client* client = (MQTT_Client*)args;
 
-INFO("MQTT data: %s \r\n", data );
-
-	//os_memcpy(topicBuf, topic, topic_len);
-	//topicBuf[topic_len] = 0;
-
-	//os_memcpy(dataBuf, data, data_len);
-	//dataBuf[data_len] = 0;
-
-	//INFO("MQTT topic: %s, data: %s \r\n", topicBuf, dataBuf);
-
-	/* Echo back to /echo channel*/
-	//MQTT_Publish(client, "/echo", dataBuf, data_len, 0, 0);
-	//MQTT_Publish(client, "/sm/sensors", dataBuf, data_len, 0, 0);
-
-	//MQTT_Publish(client, "/echo", data, data_len, 0, 0);
+	INFO("MQTT data: %s \r\n", data );
 
 	os_memcpy(g_pDataBuf, data, data_len);
 	g_pDataBuf[data_len] = 0;
 //-------------------------------------------------------------------
 	if( strcmp(g_pDataBuf,"#get#")==0 )
 	{// Tengsw 响应外部的命令，发回一个数据吧
-		//char      dataTemp[64];
-		int8	datalen= 0;
-		
-		//os_sprintf(temp, "TCPCLIENT TO:%s:%d\r\n", server, port);
-		//readDHT22( g_pstrID, g_pDataBuf ); //"20208"
-		//readHALL( g_pstrID, g_pDataBuf ); //"20208"
-		readPM( g_pstrID, g_pDataBuf ); //"20208"
-
-		//os_sprintf( dataTemp, "OID:20208,H:16.67,T:26.53\r\n" );
-		datalen = strlen( g_pDataBuf );
-
-		INFO("MQTT data: %s \r\n", g_pDataBuf );
-	
-		MQTT_Publish(client, "/sm/sensors", g_pDataBuf, datalen, 0, 0);
+		PublishData( client );
 	}
 }
 
@@ -158,28 +133,18 @@ smartconfig_done(void *data)
 	os_sprintf(sysCfg.sta_ssid, "%s", sta_conf->ssid );
 	os_sprintf(sysCfg.sta_pwd, "%s", sta_conf->password );  	
 	CFG_Save();
-//-----------------
-//-----------------	
-    //uint8 ssid[32];
-    //uint8 password[64];
 
 	wifi_station_disconnect();
 
 	nSmartconfigIndex=20;
-	//wifi_station_connect();
-
-	//smartconfig_stop();
-
-	//WIFI_Connect(sysCfg.sta_ssid, sysCfg.sta_pwd, wifiConnectCb);
 }
 
 static void  SmartConfigure(void *arg)
-{
+{ // 开机复位1分钟内配置WIFI，过了一分钟则不在进行配置。若想再次配置，需要重新开机复位。
 	if( nSmartconfigIndex == 0 )
 	{
 		INFO("smartconfig_start  \r\n" );
-		smartconfig_start(SC_TYPE_ESPTOUCH, smartconfig_done);
-		//smartconfig_start(SC_TYPE_AIRKISS, smartconfig_done);
+		smartconfig_start( SM_SC_TYPE, smartconfig_done);
 	}
 	else if( nSmartconfigIndex == 30 )
 	{
@@ -220,8 +185,6 @@ void user_init(void)
 
                // Tengsw 每五秒发一个数据吧
 	memset( g_pstrID, 0, sizeof(g_pstrID) );
-	//os_sprintf( g_pstrID, "%s", "20202" );
-	//os_sprintf( g_pstrID, "%08X", system_get_chip_id() );
 	os_sprintf( g_pstrID, "%u", system_get_chip_id() );
 
 	os_timer_setfn(&SmSensor, (os_timer_func_t *)PublishData, &mqttClient );

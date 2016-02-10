@@ -5,8 +5,7 @@
 #include "osapi.h"
 #include "gpio.h"
 
-void HALLInit();
-int    HALLRead(void);
-void  readHALL( char  *pstrID, char  *pParam);
-
+void 	HALLInit();
+int  	HALLRead(void);
+void  	readHALL( char  *pstrID, char  *pParam);
 #endif

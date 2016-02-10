@@ -4,9 +4,9 @@
 #include "ets_sys.h"
 #include "osapi.h"
 #include "gpio.h"
+#include "adc.h"
 
-void PMInit();
-int    PMRead(void);
-void  readPM( char  *pstrID, char  *pParam);
-
+void 	PMInit();
+uint16  PMRead(void);
+void 	readPM( char  *pstrID, char  *pParam);
 #endif

@@ -14,10 +14,45 @@ This is MQTT client library for ESP8266, port from: [MQTT client library for Con
 
  * Support subscribing, publishing, authentication, will messages, keep alive pings and all 3 QoS levels (it should be a fully functional client).
  * Support multiple connection (to multiple hosts).
+<<<<<<< HEAD
  * **Support SSL connection (max 1024 bit key size)**
+=======
+ * Support SSL connection (sdk 1.3 with path)
+>>>>>>> upstream/master
  * Easy to setup and use
+ * Update support SDK 1.3
 
 
+<<<<<<< HEAD
+=======
+Make sure to add PYTHON PATH and compile PATH to Eclipse environment variable if using Eclipse
+
+for Windows:
+
+```bash
+git clone --recursive https://github.com/tuanpmt/esp_mqtt
+cd esp_mqtt
+#clean
+mingw32-make clean
+#make
+mingw32-make SDK_BASE="c:/Espressif/ESP8266_SDK" FLAVOR="release" all
+#flash
+mingw32-make ESPPORT="COM1" flash
+```
+
+for Mac or Linux:
+
+```bash
+git clone --recursive https://github.com/tuanpmt/esp_mqtt
+cd esp_mqtt
+#clean
+make clean
+#make
+make SDK_BASE="/opt/Espressif/ESP8266_SDK" FLAVOR="release" all
+#flash
+make ESPPORT="/dev/ttyUSB0" flash
+```
+>>>>>>> upstream/master
 
 **Usage**
 ```c
@@ -201,10 +236,6 @@ esp_iot_sdk_v0.9.4_14_12_19
 **Authors:**
 [Tuan PM](https://twitter.com/TuanPMT)
 
-**Donations**
-
-Invite me to a coffee
-[![Donate](https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JR9RVLFC4GE6J)
 
 
 **LICENSE - "MIT License"**

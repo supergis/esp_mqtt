@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef _USER_CONFIG_H_
 #define _USER_CONFIG_H_
 
@@ -28,3 +29,12 @@
 
 
 #endif
+=======
+#ifndef __USER_CONFIG_H__
+#define __USER_CONFIG_H__
+
+#define USE_OPTIMIZE_PRINTF
+
+#endif
+
+>>>>>>> upstream/master

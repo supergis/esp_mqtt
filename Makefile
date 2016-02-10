@@ -8,9 +8,14 @@
 # Output directors to store intermediate compiled files
 # relative to the project directory
 BUILD_BASE	= build
+<<<<<<< HEAD
 FW_BASE		= firmware
 FLAVOR = release
 #FLAVOR = debug
+=======
+FW_BASE = firmware
+ESPTOOL = tools/esptool/esptool.py
+>>>>>>> upstream/master
 
 # Base directory for the compiler
 XTENSA_TOOLS_ROOT ?= c:/Espressif/xtensa-lx106-elf/bin
@@ -23,15 +28,91 @@ PYTHON		?= C:\Python27\python.exe
 ESPTOOL		?= c:\Espressif\utils\esptool.py
 ESPPORT		?= COM3
 
+<<<<<<< HEAD
 # name for the target project
 TARGET		= app
+=======
+#############################################################
+# Select compile
+#
+ifeq ($(OS),Windows_NT)
+# WIN32
+# We are under windows.
+	ifeq ($(XTENSA_CORE),lx106)
+		# It is xcc
+		AR = xt-ar
+		CC = xt-xcc
+		LD = xt-xcc
+		NM = xt-nm
+		CPP = xt-cpp
+		OBJCOPY = xt-objcopy
+		#MAKE = xt-make
+		CCFLAGS += -Os --rename-section .text=.irom0.text --rename-section .literal=.irom0.literal
+	else 
+		# It is gcc, may be cygwin
+		# Can we use -fdata-sections?
+		CCFLAGS += -Os -ffunction-sections -fno-jump-tables
+		AR = xtensa-lx106-elf-ar
+		CC = xtensa-lx106-elf-gcc
+		LD = xtensa-lx106-elf-gcc
+		NM = xtensa-lx106-elf-nm
+		CPP = xtensa-lx106-elf-cpp
+		OBJCOPY = xtensa-lx106-elf-objcopy
+	endif
+	ESPPORT 	?= com1
+	SDK_BASE	?= C:\Espressif\esp_iot_sdk_v1.3.0
+    ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+# ->AMD64
+    endif
+    ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+# ->IA32
+    endif
+else
+# We are under other system, may be Linux. Assume using gcc.
+	# Can we use -fdata-sections?
+	ESPPORT ?= /dev/ttyUSB0
+	SDK_BASE	?= /esptools/esp_iot_sdk_v1.3.0
+
+	CCFLAGS += -Os -ffunction-sections -fno-jump-tables
+	AR = xtensa-lx106-elf-ar
+	CC = xtensa-lx106-elf-gcc
+	LD = xtensa-lx106-elf-gcc
+	NM = xtensa-lx106-elf-nm
+	CPP = xtensa-lx106-elf-cpp
+	OBJCOPY = xtensa-lx106-elf-objcopy
+    UNAME_S := $(shell uname -s)
+
+    ifeq ($(UNAME_S),Linux)
+# LINUX
+    endif
+    ifeq ($(UNAME_S),Darwin)
+# OSX
+    endif
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+# ->AMD64
+    endif
+    ifneq ($(filter %86,$(UNAME_P)),)
+# ->IA32
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+# ->ARM
+    endif
+endif
+#############################################################
+
+>>>>>>> upstream/master
 
 # which modules (subdirectories) of the project to include in compiling
 MODULES		= driver user
 EXTRA_INCDIR    = include $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
+<<<<<<< HEAD
 LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
+=======
+LIBS		= c gcc hal phy pp net80211 lwip wpa main ssl crypto
+>>>>>>> upstream/master
 
 # compiler flags using during compilation of source files
 CFLAGS		= -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
